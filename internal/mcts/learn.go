@@ -2,8 +2,8 @@ package mcts
 
 import (
 	"fmt"
-	"go-mcts-v3/internal/conf"
-	"go-mcts-v3/internal/mcts/db"
+	"github.com/petestonefire/go-mcts-v3/internal/conf"
+	"github.com/petestonefire/go-mcts-v3/internal/mcts/db"
 	"math/rand"
 	"sort"
 )
