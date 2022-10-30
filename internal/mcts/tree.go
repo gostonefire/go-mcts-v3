@@ -90,6 +90,7 @@ func NewTree(game BoardGame, nodeDb NodeDB, maxRounds float64, stateFilename str
 				return nil
 			}
 		} else {
+			delete(tree.DepthStats, 1)
 			err = tree.ReadAndSetState()
 			if err != nil {
 				return nil
