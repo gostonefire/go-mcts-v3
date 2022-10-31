@@ -14,26 +14,16 @@ import (
 // numberBase - Number base to use when converting from nodeState of a board to uint64 and back
 const numberBase string = "012"
 
-// Total length of one node in file
-const nodeLength int = 17
+// Total length of one action in file
+const nodeLength int = 18
 
 // Node offsets
 const stateOffset uint64 = 0
 const playerOffset uint64 = 8
-const actionsOffset uint64 = 9
+const isEndOffset uint64 = 9
+const actionsOffset uint64 = 10
 
-/*
-	Assigned
-	State         8 bytes
-	Player        1 byte
-	Actions
-	ActionNodeAddress
-	aIndexAddress 8 bytes
-
-*/
-
-// Total length of one action in file
-const actionLength int = 28
+const actionLength int = 27
 
 // Action offsets
 
@@ -44,8 +34,7 @@ const pointsOffset uint64 = 8 // Needs to be second
 const actionXOffset uint64 = 16
 const actionYOffset uint64 = 17
 const actionPassOffset uint64 = 18
-const isDoneOffset uint64 = 19
-const childNodeOffset uint64 = 20
+const childNodeOffset uint64 = 19
 
 func openFiles(nodeTreeName string) (nodeFile, actionsFile *os.File, err error) {
 	nFile := fmt.Sprintf("%s-nodes.bin", nodeTreeName)
@@ -94,6 +83,10 @@ func bufferToNodeString(buf []byte, playerTrue, playerFalse string) (node string
 		player = playerFalse
 	}
 
+	// Player in one byte
+	var isEnd bool
+	isEnd = buf[isEndOffset] == 1
+
 	// Actions (file pointer to) in 8 bytes
 	actionsAddress = binary.LittleEndian.Uint64(buf[actionsOffset:])
 
@@ -104,7 +97,7 @@ func bufferToNodeString(buf []byte, playerTrue, playerFalse string) (node string
 		aString = fmt.Sprintf("%d", actionsAddress)
 	}
 
-	node = fmt.Sprintf("%s|%s|%s", state, player, aString)
+	node = fmt.Sprintf("%s|%s|%v|%s", state, player, isEnd, aString)
 	return
 }
 
@@ -123,15 +116,12 @@ func bufferToActionsString(buf []byte) (action string) {
 	actionY := buf[actionYOffset]
 
 	// Action Pass in one byte
-	// actionPass := buf[actionPassOffset] == 1
-
-	// IsDone in one byte
-	isDone := buf[isDoneOffset] == 1
+	actionPass := buf[actionPassOffset] == 1
 
 	// Resulting child node address in file in 8 bytes
 	nAddress := binary.LittleEndian.Uint64(buf[childNodeOffset:])
 
-	action = fmt.Sprintf("|%d|%0.1f|%d|%d|%v| -> |%d|", visits, points, actionX, actionY, isDone, nAddress)
+	action = fmt.Sprintf("|%d|%0.1f|%d|%d|%v| -> |%d|", visits, points, actionX, actionY, actionPass, nAddress)
 
 	return
 }
@@ -185,7 +175,7 @@ func main() {
 	var actionsAddress uint64
 	a := 0
 	buf := make([]byte, nodeLength)
-	for {
+	for i := 0; i < 10; i++ {
 		if _, err = nf.Read(buf); err != nil {
 			if errors.Is(err, io.EOF) {
 				break
@@ -211,7 +201,7 @@ func main() {
 		fmt.Printf("Error while seeking start in actionsString file: %s", err)
 		return
 	}
-	for {
+	for i := 0; i < 10; i++ {
 		buf = make([]byte, 1)
 		if _, err = af.Read(buf); err != nil {
 			if errors.Is(err, io.EOF) {
