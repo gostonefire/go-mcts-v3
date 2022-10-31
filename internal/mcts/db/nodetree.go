@@ -44,8 +44,9 @@ type Action struct {
 
 // nodeState - Type to hold a state in the state registry
 type nodeState struct {
-	stateCode uint64
-	playerA   bool
+	stateCodeHigh uint64
+	stateCodeLow  uint64
+	playerA       bool
 }
 
 // NewNodeTree - Creates a new NodeTree either using a new file or existing
@@ -114,7 +115,9 @@ func NewNodeTree(nodeTreeName, playerA, playerB, initialState string, newTree bo
 				}
 			}
 			node := bufferToNode(buf, playerA, playerB, nodeAddress)
-			nt.NodeRegistry[nodeState{stateCode: baseDecode(node.State), playerA: node.Player == playerA}] = nodeAddress
+			stateCode := nodeState{playerA: node.Player == playerA}
+			stateCode.stateCodeHigh, stateCode.stateCodeLow = stateToStateCodes(node.State)
+			nt.NodeRegistry[stateCode] = nodeAddress
 			nodeAddress += uint64(nodeLength)
 		}
 	}
@@ -165,7 +168,9 @@ func NewPlayNodeTree(nodeTreeName, playerA, playerB, initialState string) (nodeT
 			}
 		}
 		node := bufferToNode(buf, playerA, playerB, nodeAddress)
-		nt.NodeRegistry[nodeState{stateCode: baseDecode(node.State), playerA: node.Player == playerA}] = nodeAddress
+		stateCode := nodeState{playerA: node.Player == playerA}
+		stateCode.stateCodeHigh, stateCode.stateCodeLow = stateToStateCodes(node.State)
+		nt.NodeRegistry[stateCode] = nodeAddress
 		nodeAddress += uint64(nodeLength)
 	}
 
@@ -203,7 +208,8 @@ func (N *NodeTree) AttachActionNodes(
 	err error,
 ) {
 	// Convert states to base3 and create a nodeState instance
-	stateCode := nodeState{stateCode: baseDecode(parentState), playerA: childPlayer != N.playerA}
+	stateCode := nodeState{playerA: childPlayer != N.playerA}
+	stateCode.stateCodeHigh, stateCode.stateCodeLow = stateToStateCodes(parentState)
 
 	nActions := len(actions)
 	attachedActions = make([]Action, nActions)
@@ -261,7 +267,8 @@ func (N *NodeTree) AttachActionNodes(
 func (N *NodeTree) addNode(state, player string) (mcNode MCNode, reusedNode bool, err error) {
 
 	// Convert states to base3 and create a nodeState instance
-	stateCode := nodeState{stateCode: baseDecode(state), playerA: player == N.playerA}
+	stateCode := nodeState{playerA: player == N.playerA}
+	stateCode.stateCodeHigh, stateCode.stateCodeLow = stateToStateCodes(state)
 
 	// Do we already have that nodeState represented in a node
 	if nodeAddress, ok := N.NodeRegistry[stateCode]; !ok {

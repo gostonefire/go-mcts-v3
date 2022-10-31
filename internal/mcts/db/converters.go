@@ -3,6 +3,7 @@ package db
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"strings"
 )
 
@@ -10,13 +11,14 @@ import (
 const numberBase string = "012"
 
 // Total length of one node in file
-const nodeLength int = 18
+const nodeLength int = 26
 
 // Node offsets
-const stateOffset uint64 = 0
-const playerOffset uint64 = 8
-const isEndOffset uint64 = 9
-const actionsOffset uint64 = 10
+const stateHighOffset uint64 = 0
+const stateLowOffset uint64 = 8
+const playerOffset uint64 = 16
+const isEndOffset uint64 = 17
+const actionsOffset uint64 = 18
 
 /*
 	Assigned
@@ -58,8 +60,13 @@ func nodeToBuffer(mcNode MCNode, playerTrue string) []byte {
 	// Create byte buffer
 	buf := make([]byte, nodeLength)
 
-	// State in 8 bytes
-	binary.LittleEndian.PutUint64(buf[stateOffset:], baseDecode(mcNode.State))
+	stateCodeHigh, stateCodeLow := stateToStateCodes(mcNode.State)
+
+	// State High in 8 bytes
+	binary.LittleEndian.PutUint64(buf[stateHighOffset:], stateCodeHigh)
+
+	// State High in 8 bytes
+	binary.LittleEndian.PutUint64(buf[stateLowOffset:], stateCodeLow)
 
 	// Player in one byte
 	if mcNode.Player == playerTrue {
@@ -79,10 +86,13 @@ func nodeToBuffer(mcNode MCNode, playerTrue string) []byte {
 
 // bufferToNode - Converts a byte buffer to a Node
 func bufferToNode(buf []byte, playerTrue, playerFalse string, nodeAddress uint64) MCNode {
-	// State in 8 bytes
-	buffer := bytes.Buffer{}
-	baseEncode(binary.LittleEndian.Uint64(buf[stateOffset:]), &buffer)
-	state := buffer.String()
+	// State High in 8 bytes
+	stateCodeHigh := binary.LittleEndian.Uint64(buf[stateHighOffset:])
+
+	// State Low in 8 bytes
+	stateCodeLow := binary.LittleEndian.Uint64(buf[stateLowOffset:])
+
+	state := stateCodesToState(stateCodeHigh, stateCodeLow)
 
 	// Player in one byte
 	var player string
@@ -187,4 +197,39 @@ func baseDecode(enc string) uint64 {
 		nb += uint64(strings.IndexByte(numberBase, enc[i]) * mult)
 	}
 	return nb
+}
+
+// stateToStateCodes - Converts a state given as a string (max 64 digits in base 3) to state codes in two
+// unsigned 64-bit integers
+func stateToStateCodes(state string) (stateCodeHigh, stateCodeLow uint64) {
+	diff := 64 - len(state)
+	if diff > 0 {
+		state = fmt.Sprintf("%0*d%s", diff, 0, state)
+	}
+
+	return baseDecode(state[0:32]), baseDecode(state[32:])
+}
+
+// stateCodesToState - Converts state codes to a state string
+func stateCodesToState(stateCodeHigh, stateCodeLow uint64) string {
+	buffer := bytes.Buffer{}
+	baseEncode(stateCodeHigh, &buffer)
+	stateHigh := buffer.String()
+
+	buffer.Reset()
+	baseEncode(stateCodeLow, &buffer)
+	stateLow := buffer.String()
+
+	diff := 32 - len(stateLow)
+	if diff > 0 {
+		stateLow = fmt.Sprintf("%0*d%s", diff, 0, stateLow)
+	}
+
+	var stateBuilder strings.Builder
+	stateBuilder.WriteString(stateHigh)
+	stateBuilder.WriteString(stateLow)
+	state := stateBuilder.String()
+
+	state = strings.TrimLeft(state, "0")
+	return state
 }
