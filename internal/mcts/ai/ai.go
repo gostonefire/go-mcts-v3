@@ -157,7 +157,7 @@ func (A *AI) manageStateStatistics(player, state string, value float64, highValu
 
 	// Time to send a bulk of items out.
 	if A.highList.Len() >= A.bulkSize && A.lowList.Len() >= A.bulkSize {
-		err = A.writeBulk()
+		err = A.writeBulk(A.bulkSize)
 		if err != nil {
 			return
 		}
@@ -166,12 +166,51 @@ func (A *AI) manageStateStatistics(player, state string, value float64, highValu
 	return
 }
 
+// WriteAndCloseBuffers - Supposed to be run before closing down application and ensures that whatever is still left
+// in buffers gets written to either AI DB or overflow DB
+func (A *AI) WriteAndCloseBuffers() (err error) {
+	lenHighList := A.highList.Len()
+	lenLowList := A.lowList.Len()
+
+	if lenHighList <= lenLowList {
+		// High list contains fewer elements, write out according high list
+		err = A.writeBulk(lenHighList)
+		if err != nil {
+			return
+		}
+
+		// Empty low list to overflow
+		for e := A.lowList.Front(); e != nil; e = e.Next() {
+			err = A.writeOverflow(e.Value.(item), false)
+			if err != nil {
+				return
+			}
+		}
+	} else {
+		// Low list contains fewer elements, write out according low list
+		err = A.writeBulk(lenLowList)
+		if err != nil {
+			return
+		}
+
+		// Empty high list to overflow
+		for e := A.highList.Front(); e != nil; e = e.Next() {
+			err = A.writeOverflow(e.Value.(item), true)
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
+}
+
 // writeBulk - Writes a chunk of data of the size of a bulk to whatever means for learning is decided.
 // Currently, it is implemented to just go to file.
-func (A *AI) writeBulk() (err error) {
+func (A *AI) writeBulk(bulkSize int) (err error) {
 	var statItem item
 	var listItem *list.Element
-	for i := 0; i < A.bulkSize; i++ {
+	for i := 0; i < bulkSize; i++ {
 		listItem = A.highList.Back()
 		statItem = listItem.Value.(item)
 		_, err = fmt.Fprintf(A.AIFile, "%s,%s,%.2f,1\n", statItem.player, statItem.state, statItem.value)

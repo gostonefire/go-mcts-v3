@@ -33,6 +33,7 @@ type NodeDB interface {
 
 type AI interface {
 	RecordStateStatistics(player, state string, oldVisits, visits uint64, oldPoints, points float64) (err error)
+	WriteAndCloseBuffers() (err error)
 }
 
 // Action - Convenient structure for an action
@@ -135,6 +136,13 @@ func NewPlayTree(game BoardGame, nodeDb NodeDB, aiMgmt AI, stateFilename string)
 	}
 
 	return &tree
+}
+
+// WriteAndCloseAIBuffers - Ensures whatever may be left in AI buffer gets written to file
+func (T *Tree) WriteAndCloseAIBuffers() (err error) {
+	err = T.AI.WriteAndCloseBuffers()
+
+	return
 }
 
 // SaveState - Saves the current state of the tree for use if we want to continue to learn later

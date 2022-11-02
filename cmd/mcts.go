@@ -77,8 +77,13 @@ func main() {
 		}
 	}
 	fmt.Printf("\nNumber of nodes in final tree: %d\n", tree.NNodes)
+
 	err = tree.SaveState()
 	if err != nil {
 		fmt.Println("Error while saving state")
+	}
+	err = tree.WriteAndCloseAIBuffers()
+	if err != nil {
+		fmt.Println("Error while writing leftovers from AI buffers to file")
 	}
 }
