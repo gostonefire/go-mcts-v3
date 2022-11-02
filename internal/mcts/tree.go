@@ -31,6 +31,10 @@ type NodeDB interface {
 	SetNodeIsEnd(nodeAddress uint64) (err error)
 }
 
+type AI interface {
+	RecordStateStatistics(player, state string, visits uint64, points float64)
+}
+
 // Action - Convenient structure for an action
 type Action struct {
 	X    uint8
@@ -42,6 +46,7 @@ type Action struct {
 type Tree struct {
 	Game             BoardGame
 	NodeDB           NodeDB
+	AI               AI
 	PlayerA          string
 	PlayerB          string
 	AtNode           db.MCNode

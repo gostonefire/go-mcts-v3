@@ -262,6 +262,9 @@ func (T *Tree) updateActionStatistics(action db.Action, winner string) error {
 	if err != nil {
 		return err
 	}
+
+	T.AI.RecordStateStatistics(action.ActionNode.Player, action.ActionNode.State, action.Visits, float64(action.Points)/2)
+
 	return nil
 }
 
