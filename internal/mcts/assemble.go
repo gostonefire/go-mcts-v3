@@ -69,6 +69,7 @@ func AssembleForLearning(
 		_ = nodeDB.ActionsFile.Close()
 		_ = nodeDB.NodeFile.Close()
 		_ = aiMgmt.AIFile.Close()
+		_ = aiMgmt.AIOverflowFile.Close()
 	}
 
 	// Create the mcts tree instance
@@ -135,6 +136,7 @@ func AssembleForPlay(
 		_ = nodeDB.ActionsFile.Close()
 		_ = nodeDB.NodeFile.Close()
 		_ = aiMgmt.AIFile.Close()
+		_ = aiMgmt.AIOverflowFile.Close()
 	}
 
 	tree = NewPlayTree(game, nodeDB, aiMgmt, fmt.Sprintf("%s.state", name))

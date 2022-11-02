@@ -62,7 +62,7 @@ func NewNodeTree(nodeTreeName, playerA, playerB, initialState string, newTree bo
 	}
 
 	if newTree {
-		if err = removeExistingFiles(nFile, aFile); err != nil {
+		if err = removeExistingFiles([]string{nFile, aFile}); err != nil {
 			fmt.Println("Error while trying to remove existing node files")
 			return
 		}
@@ -179,8 +179,7 @@ func NewPlayNodeTree(nodeTreeName, playerA, playerB, initialState string) (nodeT
 }
 
 // removeExistingFiles - Removes any existing node related files if present
-func removeExistingFiles(nFile, cFile string) error {
-	files := [3]string{nFile, cFile}
+func removeExistingFiles(files []string) error {
 	for _, file := range files {
 		if _, err := os.Stat(file); err == nil {
 			err = os.Remove(file)

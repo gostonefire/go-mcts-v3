@@ -9,6 +9,7 @@ import (
 // AI - Represents a structure for managing with statistics and models in the AI domain
 type AI struct {
 	AIFile             *os.File
+	AIOverflowFile     *os.File
 	highValueThreshold float64
 	lowValueThreshold  float64
 	visitsThreshold    uint64
@@ -41,28 +42,32 @@ func NewAI(
 	err error,
 ) {
 
-	dbFile := fmt.Sprintf("%s-aiDB.txt", dbName)
+	dFile := fmt.Sprintf("%s-aiDB.txt", dbName)
+	oFile := fmt.Sprintf("%s-aiDBOverflow.txt", dbName)
 
 	// Clear old db file(s) if indicated
 	if newDB {
-		if _, err = os.Stat(dbFile); err == nil {
-			err = os.Remove(dbFile)
-			if err != nil {
-				fmt.Printf("Error while removing file %s: %s\n", dbFile, err)
-				return
-			}
+		if err = removeExistingFiles([]string{dFile, oFile}); err != nil {
+			fmt.Println("Error while trying to remove existing node files")
+			return
 		}
 	}
 
-	// Open or create the node files
-	dbf, err := os.OpenFile(dbFile, os.O_RDWR|os.O_CREATE, 0644)
+	// Open or create the AI DB files
+	df, err := os.OpenFile(dFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
-		fmt.Printf("Error while open or create %s, %s\n", dbFile, err)
-		return nil, err
+		fmt.Printf("Error while open or create %s, %s\n", dFile, err)
+		return
+	}
+	of, err := os.OpenFile(oFile, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		fmt.Printf("Error while open or create %s, %s\n", dFile, err)
+		return
 	}
 
 	ai = &AI{
-		AIFile:             dbf,
+		AIFile:             df,
+		AIOverflowFile:     of,
 		highValueThreshold: highValueThreshold,
 		lowValueThreshold:  lowValueThreshold,
 		visitsThreshold:    visitsThreshold,
@@ -128,13 +133,23 @@ func (A *AI) manageStateStatistics(player, state string, value float64, highValu
 	// Update the buffers with the new item and ensure buffers are kept within size limits
 	if highValue {
 		if A.highList.Len() >= A.maxListLengths {
-			A.highList.Remove(A.highList.Back())
+			listItem := A.highList.Back()
+			err = A.writeOverflow(listItem.Value.(item), true)
+			if err != nil {
+				return
+			}
+			A.highList.Remove(listItem)
 		}
 
 		A.highList.PushFront(statItem)
 	} else {
 		if A.lowList.Len() >= A.maxListLengths {
-			A.lowList.Remove(A.lowList.Back())
+			listItem := A.lowList.Back()
+			err = A.writeOverflow(listItem.Value.(item), false)
+			if err != nil {
+				return
+			}
+			A.lowList.Remove(listItem)
 		}
 
 		A.lowList.PushFront(statItem)
@@ -177,4 +192,33 @@ func (A *AI) writeBulk() (err error) {
 	}
 
 	return
+}
+
+// writeOverflow - Writes overflow data to file
+func (A *AI) writeOverflow(statItem item, highValue bool) (err error) {
+	var highLabel int
+	if highValue {
+		highLabel = 1
+	}
+	_, err = fmt.Fprintf(A.AIOverflowFile, "%s,%s,%.2f,%d\n", statItem.player, statItem.state, statItem.value, highLabel)
+	if err != nil {
+		fmt.Printf("Error while writing AI overflow to file: %s", err)
+		return
+	}
+
+	return
+}
+
+// removeExistingFiles - Removes any existing node related files if present
+func removeExistingFiles(files []string) error {
+	for _, file := range files {
+		if _, err := os.Stat(file); err == nil {
+			err = os.Remove(file)
+			if err != nil {
+				fmt.Printf("Error while removing file %s: %s\n", file, err)
+				return err
+			}
+		}
+	}
+	return nil
 }
