@@ -247,7 +247,7 @@ func (T *Tree) availableGameActions() []Action {
 
 // updateActionStatistics - Wrapper function over the NodeDB function with similar name, but this one adds the
 // points and visits logic
-func (T *Tree) updateActionStatistics(action db.Action, winner string) error {
+func (T *Tree) updateActionStatistics(action db.Action, winner string) (err error) {
 	newPoints := action.Points
 	if winner == "" {
 		// It's a draw
@@ -258,14 +258,23 @@ func (T *Tree) updateActionStatistics(action db.Action, winner string) error {
 
 	newVisits := action.Visits + 1
 
-	err := T.NodeDB.UpdateActionStatistics(action.ActionsAddress, action.ActionIndex, newVisits, newPoints)
+	err = T.NodeDB.UpdateActionStatistics(action.ActionsAddress, action.ActionIndex, newVisits, newPoints)
 	if err != nil {
-		return err
+		return
 	}
 
-	T.AI.RecordStateStatistics(action.ActionNode.Player, action.ActionNode.State, action.Visits, float64(action.Points)/2)
+	if T.Rounds > conf.AIWarmUpRounds {
+		err = T.AI.RecordStateStatistics(
+			action.ActionNode.Player,
+			action.ActionNode.State,
+			action.Visits,
+			newVisits,
+			float64(action.Points)/2,
+			float64(newPoints)/2,
+		)
+	}
 
-	return nil
+	return
 }
 
 func (T *Tree) printStatistics(finalPrint bool) {

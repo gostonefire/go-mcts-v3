@@ -32,7 +32,7 @@ type NodeDB interface {
 }
 
 type AI interface {
-	RecordStateStatistics(player, state string, visits uint64, points float64)
+	RecordStateStatistics(player, state string, oldVisits, visits uint64, oldPoints, points float64) (err error)
 }
 
 // Action - Convenient structure for an action
@@ -62,7 +62,7 @@ type Tree struct {
 }
 
 // NewTree - Returns a new tree with a single node at the top
-func NewTree(game BoardGame, nodeDb NodeDB, maxRounds float64, stateFilename string, forceNew bool) *Tree {
+func NewTree(game BoardGame, nodeDb NodeDB, aiMgmt AI, maxRounds float64, stateFilename string, forceNew bool) *Tree {
 	// Seed random generator
 	time.Now().UnixNano()
 	rand.Seed(time.Now().UnixNano())
@@ -74,6 +74,7 @@ func NewTree(game BoardGame, nodeDb NodeDB, maxRounds float64, stateFilename str
 	tree := Tree{
 		Game:             game,
 		NodeDB:           nodeDb,
+		AI:               aiMgmt,
 		PlayerA:          players[0],
 		PlayerB:          players[1],
 		NNodes:           1,
@@ -107,7 +108,7 @@ func NewTree(game BoardGame, nodeDb NodeDB, maxRounds float64, stateFilename str
 }
 
 // NewPlayTree - Returns a new tree with a single node at the top
-func NewPlayTree(game BoardGame, nodeDb NodeDB, stateFilename string) *Tree {
+func NewPlayTree(game BoardGame, nodeDb NodeDB, aiMgmt AI, stateFilename string) *Tree {
 	// Seed random generator
 	time.Now().UnixNano()
 	rand.Seed(time.Now().UnixNano())
@@ -119,6 +120,7 @@ func NewPlayTree(game BoardGame, nodeDb NodeDB, stateFilename string) *Tree {
 	tree := Tree{
 		Game:             game,
 		NodeDB:           nodeDb,
+		AI:               aiMgmt,
 		PlayerA:          players[0],
 		PlayerB:          players[1],
 		NNodes:           1,

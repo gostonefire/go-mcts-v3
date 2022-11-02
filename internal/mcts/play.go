@@ -201,3 +201,7 @@ func (T *Tree) opponentMove() (MoveResult, error) {
 	}, nil
 
 }
+
+func (T *Tree) PrintBoard() {
+	T.Game.PrintBoard()
+}
