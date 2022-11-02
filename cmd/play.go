@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/petestonefire/go-mcts-v3/internal/conf"
 	"github.com/petestonefire/go-mcts-v3/internal/mcts"
 	"os"
 	"strconv"
@@ -14,14 +13,8 @@ import (
 func main() {
 	fmt.Println("MCTS Play")
 
-	// Get options from console
-	gameId, size, name, err := conf.GetPlayOptions()
-	if err != nil {
-		return
-	}
-
 	// Assemble all parts that conforms to an MCTS tree in learning mode
-	tree, passAllowed, deferFunc, err := mcts.AssembleForPlay(gameId, size, name)
+	tree, passAllowed, deferFunc, err := mcts.AssembleForPlay()
 	defer deferFunc()
 
 	err = tree.ResetPlayPlayerB()

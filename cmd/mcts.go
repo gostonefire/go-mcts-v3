@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/petestonefire/go-mcts-v3/internal/conf"
 	"github.com/petestonefire/go-mcts-v3/internal/mcts"
 	"github.com/petestonefire/go-mcts-v3/internal/mcts/db"
 )
@@ -15,14 +14,8 @@ func main() {
 	var isEnd bool
 	var winner string
 
-	// Get options from console
-	gameId, size, maxRounds, forceNew, name, err := conf.GetLearnOptions()
-	if err != nil {
-		return
-	}
-
 	// Assemble all parts that conforms to an MCTS tree in learning mode
-	tree, deferFunc, err := mcts.AssembleForLearning(gameId, size, maxRounds, forceNew, name)
+	tree, deferFunc, err := mcts.AssembleForLearning()
 	defer deferFunc()
 	if err != nil {
 		return

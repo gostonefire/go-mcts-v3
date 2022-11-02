@@ -10,13 +10,7 @@ import (
 )
 
 // AssembleForLearning - Assembles all parts necessary for learning mode
-func AssembleForLearning(
-	gameId int,
-	size uint8,
-	maxRounds float64,
-	forceNew bool,
-	name string,
-) (
+func AssembleForLearning() (
 	tree *Tree,
 	deferFunc func(),
 	err error,
@@ -24,6 +18,12 @@ func AssembleForLearning(
 
 	var game BoardGame
 	var playerA, playerB string
+
+	// Get options from console
+	gameId, size, maxRounds, forceNew, name, err := conf.GetLearnOptions()
+	if err != nil {
+		return
+	}
 
 	deferFunc = func() {}
 
@@ -79,11 +79,7 @@ func AssembleForLearning(
 }
 
 // AssembleForPlay - Assembles all parts necessary for play mode
-func AssembleForPlay(
-	gameId int,
-	size uint8,
-	name string,
-) (
+func AssembleForPlay() (
 	tree *Tree,
 	passAllowed bool,
 	deferFunc func(),
@@ -92,6 +88,12 @@ func AssembleForPlay(
 
 	var game BoardGame
 	var playerA, playerB string
+
+	// Get options from console
+	gameId, size, name, err := conf.GetPlayOptions()
+	if err != nil {
+		return
+	}
 
 	deferFunc = func() {}
 
