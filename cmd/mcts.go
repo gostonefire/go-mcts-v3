@@ -78,11 +78,13 @@ Loop:
 		err = fmt.Errorf("error while saving state")
 		return
 	}
+	fmt.Println("\nStart writing buffered AI data to file")
 	err = tree.WriteAndCloseAIBuffers()
 	if err != nil {
 		err = fmt.Errorf("error while writing leftovers from AI buffers to file")
 		return
 	}
+	fmt.Println("Done writing buffered AI data to file")
 
 	return
 }

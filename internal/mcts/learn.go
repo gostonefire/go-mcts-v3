@@ -264,14 +264,7 @@ func (T *Tree) updateActionStatistics(action db.Action, winner string) (err erro
 	}
 
 	if T.Rounds > conf.AIWarmUpRounds {
-		err = T.AI.RecordStateStatistics(
-			action.ActionNode.Player,
-			action.ActionNode.State,
-			action.Visits,
-			newVisits,
-			float64(action.Points)/2,
-			float64(newPoints)/2,
-		)
+		T.AI.RecordStateStatistics(action.ActionNode.Player, action.ActionNode.State, newVisits, float64(newPoints)/2)
 	}
 
 	return

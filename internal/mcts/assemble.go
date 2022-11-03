@@ -59,17 +59,11 @@ func AssembleForLearning() (
 	}
 
 	// Create AI management assets
-	aiMgmt, err := ai.NewAI(name, conf.AIHighValueThreshold, conf.AILowValueThreshold, conf.AIVisitsThreshold, int(size*size), conf.AIMaxListLengths, conf.AIBulkSize, forceNew)
+	aiMgmt, err := ai.NewAI(name, conf.AIHighValueThreshold, conf.AILowValueThreshold, conf.AIVisitsThreshold, int(size*size), forceNew)
 	if err != nil {
 		fmt.Println("Error while creating AI management assets")
 		err = fmt.Errorf("error while creating AI management assets")
 		return
-	}
-	deferFunc = func() {
-		_ = nodeDB.ActionsFile.Close()
-		_ = nodeDB.NodeFile.Close()
-		_ = aiMgmt.AIFile.Close()
-		_ = aiMgmt.AIOverflowFile.Close()
 	}
 
 	// Create the mcts tree instance
@@ -128,17 +122,11 @@ func AssembleForPlay() (
 	}
 
 	// Create AI management assets
-	aiMgmt, err := ai.NewAI(name, conf.AIHighValueThreshold, conf.AILowValueThreshold, conf.AIVisitsThreshold, int(size*size), conf.AIMaxListLengths, conf.AIBulkSize, false)
+	aiMgmt, err := ai.NewAI(name, conf.AIHighValueThreshold, conf.AILowValueThreshold, conf.AIVisitsThreshold, int(size*size), false)
 	if err != nil {
 		fmt.Println("Error while creating AI management assets")
 		err = fmt.Errorf("error while creating AI management assets")
 		return
-	}
-	deferFunc = func() {
-		_ = nodeDB.ActionsFile.Close()
-		_ = nodeDB.NodeFile.Close()
-		_ = aiMgmt.AIFile.Close()
-		_ = aiMgmt.AIOverflowFile.Close()
 	}
 
 	tree = NewPlayTree(game, nodeDB, aiMgmt, fmt.Sprintf("%s.state", name))

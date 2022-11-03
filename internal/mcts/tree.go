@@ -32,7 +32,7 @@ type NodeDB interface {
 }
 
 type AI interface {
-	RecordStateStatistics(player, state string, oldVisits, visits uint64, oldPoints, points float64) (err error)
+	RecordStateStatistics(player, state string, visits uint64, points float64)
 	WriteAndCloseBuffers() (err error)
 }
 
