@@ -264,7 +264,14 @@ func (T *Tree) updateActionStatistics(action db.Action, winner string) (err erro
 	}
 
 	if T.Rounds > conf.AIWarmUpRounds {
-		T.AI.RecordStateStatistics(action.ActionNode.Player, action.ActionNode.State, newVisits, float64(newPoints)/2)
+		var player int
+		// Since the attached action node keeps track of who is the player to play, and not the player who played to get
+		// to the state, we need to turn it around before sending it to AI. A one (1) indicates the first player to
+		// play (e.g. Black in Othello) and a zero (0) indicates the second player.
+		if action.ActionNode.Player == T.PlayerB {
+			player = 1
+		}
+		T.AI.RecordStateStatistics(player, action.ActionNode.State, newVisits, float64(newPoints)/2)
 	}
 
 	return

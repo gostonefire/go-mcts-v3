@@ -90,13 +90,13 @@ func NewAI(
 }
 
 // RecordStateStatistics - Records statistics for a player/state pair in the AI domain
-func (A *AI) RecordStateStatistics(player, state string, visits uint64, points float64) {
+func (A *AI) RecordStateStatistics(player int, state string, visits uint64, points float64) {
 
 	if visits < A.visitsThreshold {
 		return
 	}
 
-	state = fmt.Sprintf("%s%s", state, player)
+	state = fmt.Sprintf("%s%d", state, player)
 
 	value := float32(points / float64(visits))
 
