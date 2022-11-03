@@ -14,14 +14,14 @@ import (
 // numberBase - Number base to use when converting from nodeState of a board to uint64 and back
 const numberBase string = "012"
 
-// Total length of one action in file
-const nodeLength int = 18
+const nodeLength int = 26
 
 // Node offsets
-const stateOffset uint64 = 0
-const playerOffset uint64 = 8
-const isEndOffset uint64 = 9
-const actionsOffset uint64 = 10
+const stateHighOffset uint64 = 0
+const stateLowOffset uint64 = 8
+const playerOffset uint64 = 16
+const isEndOffset uint64 = 17
+const actionsOffset uint64 = 18
 
 const actionLength int = 27
 
@@ -55,6 +55,30 @@ func openFiles(nodeTreeName string) (nodeFile, actionsFile *os.File, err error) 
 	return
 }
 
+// stateCodesToState - Converts state codes to a state string
+func stateCodesToState(stateCodeHigh, stateCodeLow uint64) string {
+	buffer := bytes.Buffer{}
+	baseEncode(stateCodeHigh, &buffer)
+	stateHigh := buffer.String()
+
+	buffer.Reset()
+	baseEncode(stateCodeLow, &buffer)
+	stateLow := buffer.String()
+
+	diff := 32 - len(stateLow)
+	if diff > 0 {
+		stateLow = fmt.Sprintf("%0*d%s", diff, 0, stateLow)
+	}
+
+	var stateBuilder strings.Builder
+	stateBuilder.WriteString(stateHigh)
+	stateBuilder.WriteString(stateLow)
+	state := stateBuilder.String()
+
+	state = strings.TrimLeft(state, "0")
+	return state
+}
+
 // baseEncode - Encodes decimal to new base
 func baseEncode(nb uint64, buf *bytes.Buffer) {
 	l := uint64(len(numberBase))
@@ -67,10 +91,10 @@ func baseEncode(nb uint64, buf *bytes.Buffer) {
 // bufferToNodeString - Converts a byte buffer to a Node string
 func bufferToNodeString(buf []byte, playerTrue, playerFalse string) (node string, actionsAddress uint64) {
 	// State in 8 bytes
-	buffer := bytes.Buffer{}
-	baseEncode(binary.LittleEndian.Uint64(buf[stateOffset:]), &buffer)
-	state := buffer.String()
-	diff := 9 - len(state)
+	stateCodeHigh := binary.LittleEndian.Uint64(buf[stateHighOffset:])
+	stateCodeLow := binary.LittleEndian.Uint64(buf[stateLowOffset:])
+	state := stateCodesToState(stateCodeHigh, stateCodeLow)
+	diff := 64 - len(state)
 	if diff > 0 {
 		state = fmt.Sprintf("%0*d%s", diff, 0, state)
 	}
