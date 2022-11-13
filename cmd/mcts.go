@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/petestonefire/go-mcts-v3/internal/mcts"
-	"github.com/petestonefire/go-mcts-v3/internal/mcts/db"
+	"github.com/gostonefire/go-mcts-v3/internal/mcts"
+	"github.com/gostonefire/go-mcts-v3/internal/mcts/db"
 	"os"
 	"os/signal"
 )

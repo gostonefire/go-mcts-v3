@@ -3,8 +3,8 @@ package mcts
 import (
 	"bufio"
 	"fmt"
-	"github.com/petestonefire/go-mcts-v3/internal/conf"
-	"github.com/petestonefire/go-mcts-v3/internal/mcts/db"
+	"github.com/gostonefire/go-mcts-v3/internal/conf"
+	"github.com/gostonefire/go-mcts-v3/internal/mcts/db"
 	"math/rand"
 	"os"
 	"strconv"

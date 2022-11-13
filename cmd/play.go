@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/petestonefire/go-mcts-v3/internal/mcts"
+	"github.com/gostonefire/go-mcts-v3/internal/mcts"
 	"os"
 	"strconv"
 	"strings"

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/petestonefire/go-mcts-v3/internal/othello"
+	"github.com/gostonefire/go-mcts-v3/internal/othello"
 )
 
 func main() {

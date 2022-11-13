@@ -1,3 +1,3 @@
-module github.com/petestonefire/go-mcts-v3
+module github.com/gostonefire/go-mcts-v3
 
 go 1.19

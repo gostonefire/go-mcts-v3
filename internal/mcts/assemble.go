@@ -2,11 +2,11 @@ package mcts
 
 import (
 	"fmt"
-	"github.com/petestonefire/go-mcts-v3/internal/conf"
-	"github.com/petestonefire/go-mcts-v3/internal/mcts/ai"
-	"github.com/petestonefire/go-mcts-v3/internal/mcts/db"
-	"github.com/petestonefire/go-mcts-v3/internal/othello"
-	"github.com/petestonefire/go-mcts-v3/internal/tictactoe"
+	"github.com/gostonefire/go-mcts-v3/internal/conf"
+	"github.com/gostonefire/go-mcts-v3/internal/mcts/ai"
+	"github.com/gostonefire/go-mcts-v3/internal/mcts/db"
+	"github.com/gostonefire/go-mcts-v3/internal/othello"
+	"github.com/gostonefire/go-mcts-v3/internal/tictactoe"
 )
 
 // AssembleForLearning - Assembles all parts necessary for learning mode
