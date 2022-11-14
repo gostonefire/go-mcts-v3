@@ -20,7 +20,7 @@ func AssembleForLearning() (
 	var playerA, playerB string
 
 	// Get options from console
-	gameId, size, maxRounds, forceNew, name, err := conf.GetLearnOptions()
+	gameId, size, maxRounds, uniqueStates, forceNew, name, err := conf.GetLearnOptions()
 	if err != nil {
 		return
 	}
@@ -47,7 +47,7 @@ func AssembleForLearning() (
 	initialState, _ := game.GetState()
 
 	// Create the node tree db instance
-	nodeDB, err := db.NewNodeTree(name, playerA, playerB, initialState, forceNew)
+	nodeDB, err := db.NewNodeTree(name, playerA, playerB, initialState, uniqueStates, forceNew)
 	if err != nil {
 		fmt.Println("Error while creating file based node database")
 		err = fmt.Errorf("error while creating file based node database")

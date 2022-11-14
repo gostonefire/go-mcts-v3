@@ -50,7 +50,7 @@ type nodeState struct {
 }
 
 // NewNodeTree - Creates a new NodeTree either using a new file or existing
-func NewNodeTree(nodeTreeName, playerA, playerB, initialState string, newTree bool) (nodeTree *NodeTree, err error) {
+func NewNodeTree(nodeTreeName, playerA, playerB, initialState string, uniqueStates int64, newTree bool) (nodeTree *NodeTree, err error) {
 	mFile := fmt.Sprintf("%s-map.bin", nodeTreeName)
 	oFile := fmt.Sprintf("%s-ovfl.bin", nodeTreeName)
 	aFile := fmt.Sprintf("%s-actions.bin", nodeTreeName)
@@ -78,9 +78,14 @@ func NewNodeTree(nodeTreeName, playerA, playerB, initialState string, newTree bo
 
 	var fhm *filehashmap.FileHashMap
 	if newTree {
-		fhm, _, err = filehashmap.NewFileHashMap(nodeTreeName, 500000, 17, 9, nil)
+		fhm, _, err = filehashmap.NewFileHashMap(nodeTreeName, uniqueStates, 17, 9, nil)
 		if err != nil {
 			fmt.Printf("Error while creating FileHashMap, %s\n", err)
+			return nil, err
+		}
+		err = fhm.CreateNewFiles()
+		if err != nil {
+			fmt.Printf("Error while creating FileHashMap files, %s\n", err)
 			return nil, err
 		}
 	} else {
@@ -126,7 +131,7 @@ func NewPlayNodeTree(nodeTreeName, playerA, playerB, initialState string) (nodeT
 	_, err2 := os.Stat(oFile)
 	_, err3 := os.Stat(aFile)
 	if err1 != nil || err2 != nil || err3 != nil {
-		return NewNodeTree(nodeTreeName, playerA, playerB, initialState, true)
+		return NewNodeTree(nodeTreeName, playerA, playerB, initialState, 10, true)
 	}
 
 	// Open the node files
@@ -229,7 +234,6 @@ func (N *NodeTree) AttachActionNodes(
 		return
 	}
 
-	buf = make([]byte, 8)
 	binary.LittleEndian.PutUint64(parentValue[actionsOffset:], actionsAddress)
 	err = N.NodeMap.Set(parentStateKey, parentValue)
 	if err != nil {
@@ -259,7 +263,7 @@ func (N *NodeTree) addNode(state, player string) (mcNode MCNode, stateKey []byte
 	stateKey = nodeStateToBuffer(nodeState{
 		stateCodeHigh: stateCodeHigh,
 		stateCodeLow:  stateCodeLow,
-		playerA:       player != N.playerA,
+		playerA:       player == N.playerA,
 	})
 
 	nodeValue, err := N.NodeMap.Get(stateKey)

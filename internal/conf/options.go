@@ -9,11 +9,12 @@ import (
 )
 
 // GetLearnOptions - Gets input from the executor
-func GetLearnOptions() (gameId int, size uint8, maxRounds float64, forceNew bool, name string, err error) {
+func GetLearnOptions() (gameId int, size uint8, maxRounds float64, uniqueStates int64, forceNew bool, name string, err error) {
 	var input string
-	var s, m int
+	var s, m, u int
 	size = 4
 	maxRounds = 1000000
+	uniqueStates = 100000000
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -60,6 +61,21 @@ func GetLearnOptions() (gameId int, size uint8, maxRounds float64, forceNew bool
 			return
 		}
 		maxRounds = float64(m)
+	}
+
+	fmt.Print("Estimated unique states [100000000]: ")
+	input, err = reader.ReadString('\n')
+	if err != nil {
+		fmt.Printf("Error while reading input from console: %s\n", err)
+		return
+	}
+	if input = strings.TrimSpace(input); input != "" {
+		u, err = strconv.Atoi(strings.TrimSpace(input))
+		if err != nil {
+			fmt.Printf("Error, malformed number give: %s\n", err)
+			return
+		}
+		uniqueStates = int64(u)
 	}
 
 	fmt.Print("Force new tree [false]: ")
