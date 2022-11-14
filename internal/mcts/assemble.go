@@ -55,7 +55,7 @@ func AssembleForLearning() (
 	}
 	deferFunc = func() {
 		_ = nodeDB.ActionsFile.Close()
-		_ = nodeDB.NodeFile.Close()
+		nodeDB.NodeMap.CloseFiles()
 	}
 
 	// Create AI management assets
@@ -118,7 +118,7 @@ func AssembleForPlay() (
 	}
 	deferFunc = func() {
 		_ = nodeDB.ActionsFile.Close()
-		_ = nodeDB.NodeFile.Close()
+		nodeDB.NodeMap.CloseFiles()
 	}
 
 	// Create AI management assets

@@ -67,7 +67,7 @@ func (T *Tree) Select() (actions []db.Action, err error) {
 
 		action = action.ActionNode.Actions[selected]
 
-		action.ActionNode, err = T.NodeDB.GetNode(action.ActionNodeAddress)
+		action.ActionNode, err = T.NodeDB.GetNode(action.ActionNodeKey)
 		if err != nil {
 			return
 		}
@@ -193,7 +193,7 @@ func (T *Tree) SetNodeIsEnd(action db.Action) (err error) {
 		// Remove one from unexpanded nodes since this one is at the end and cannot be expanded
 		T.NUnexpandedNodes--
 
-		return T.NodeDB.SetNodeIsEnd(action.ActionNodeAddress)
+		return T.NodeDB.SetNodeIsEnd(action.ActionNodeKey)
 	}
 
 	return

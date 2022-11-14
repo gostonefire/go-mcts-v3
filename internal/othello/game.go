@@ -179,7 +179,7 @@ func (O *Othello) GetState() (string, string) {
 // SetState - Sets the game according given state and player in turn
 func (O *Othello) SetState(state, playerInTurn string) (isDone bool, winner string) {
 	// Fix length of state by left padding with zeros
-	diff := int(O.size*O.size) - len(state)
+	diff := O.size*O.size - len(state)
 	if diff > 0 {
 		state = fmt.Sprintf("%0*d%s", diff, 0, state)
 	}
@@ -216,7 +216,7 @@ func (O *Othello) PrintBoard() {
 	fmt.Println("")
 	for r := int(O.size) - 1; r >= 0; r-- {
 		fmt.Printf("%d ", r+1)
-		for c := 0; c < int(O.size); c++ {
+		for c := 0; c < O.size; c++ {
 			fmt.Printf("|%s", O.board[c][r])
 		}
 		fmt.Print("|\n")
@@ -229,7 +229,7 @@ func (O *Othello) PrintBoard() {
 func (O *Othello) getPlayerCoords(player string) (playerCoords []coords) {
 	playerCoords = make([]coords, 0)
 	for r := int(O.size) - 1; r >= 0; r-- {
-		for c := 0; c < int(O.size); c++ {
+		for c := 0; c < O.size; c++ {
 			if O.board[c][r] == player {
 				playerCoords = append(playerCoords, coords{c, r})
 			}
@@ -335,7 +335,7 @@ func (O *Othello) evaluateGame() (winner string) {
 // getLeaderBoard - Returns number of bricks for each player
 func (O *Othello) getLeaderBoard() (bricksA, bricksB int) {
 	for r := int(O.size) - 1; r >= 0; r-- {
-		for c := 0; c < int(O.size); c++ {
+		for c := 0; c < O.size; c++ {
 			if O.board[c][r] == O.playerA {
 				bricksA++
 			} else if O.board[c][r] == O.playerB {

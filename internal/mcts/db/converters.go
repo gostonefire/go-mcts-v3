@@ -10,15 +10,16 @@ import (
 // numberBase - Number base to use when converting from nodeState of a board to uint64 and back
 const numberBase string = "012"
 
-// Total length of one node in file
-const nodeLength int = 26
-
-// Node offsets
+// Node key offsets
+const nodeKeyLength int = 17
 const stateHighOffset uint64 = 0
 const stateLowOffset uint64 = 8
 const playerOffset uint64 = 16
-const isEndOffset uint64 = 17
-const actionsOffset uint64 = 18
+
+// Node value offsets
+const nodeValueLength int = 9
+const isEndOffset uint64 = 0
+const actionsOffset uint64 = 1
 
 /*
 	Assigned
@@ -31,18 +32,18 @@ const actionsOffset uint64 = 18
 */
 
 // Total length of one action in file
-const actionLength int = 27
+const actionLength int = 36
 
 // Action offsets
 
 // Offsets in relation to first byte of an Action in file
 // Note: code depends on visitsOffset and pointsOffset being first and in that order.
-const visitsOffset uint64 = 0 // Needs to be first
-const pointsOffset uint64 = 8 // Needs to be second
-const actionXOffset uint64 = 16
-const actionYOffset uint64 = 17
-const actionPassOffset uint64 = 18
-const childNodeOffset uint64 = 19
+const visitsOffset uint64 = 0        // Needs to be first - 8 bytes
+const pointsOffset uint64 = 8        // Needs to be second - 8 bytes
+const actionXOffset uint64 = 16      // 1 byte
+const actionYOffset uint64 = 17      // 1 byte
+const actionPassOffset uint64 = 18   // 1 byte
+const childNodeKeyOffset uint64 = 19 // 17 bytes
 
 /*
 	Visits         8 bytes
@@ -55,67 +56,55 @@ const childNodeOffset uint64 = 19
 	ActionNodeAddress
 */
 
-// nodeToBuffer - Converts an MCNode to a byte buffer
-func nodeToBuffer(mcNode MCNode, playerTrue string) []byte {
-	// Create byte buffer
-	buf := make([]byte, nodeLength)
-
-	stateCodeHigh, stateCodeLow := stateToStateCodes(mcNode.State)
-
-	// State High in 8 bytes
-	binary.LittleEndian.PutUint64(buf[stateHighOffset:], stateCodeHigh)
-
-	// State High in 8 bytes
-	binary.LittleEndian.PutUint64(buf[stateLowOffset:], stateCodeLow)
-
-	// Player in one byte
-	if mcNode.Player == playerTrue {
-		buf[playerOffset] = 1
-	}
+// nodeToBuffer - Converts an MCNode to a byte buffer (value only)
+func nodeToBuffer(mcNode MCNode) (value []byte) {
+	// Create value byte buffer
+	value = make([]byte, nodeValueLength)
 
 	// IsEnd in one byte
 	if mcNode.IsEnd {
-		buf[isEndOffset] = 1
+		value[isEndOffset] = 1
 	}
 
 	// Actions index address in file in 8 bytes
-	binary.LittleEndian.PutUint64(buf[actionsOffset:], mcNode.ActionsAddress)
+	binary.LittleEndian.PutUint64(value[actionsOffset:], mcNode.ActionsAddress)
 
-	return buf
+	return
 }
 
 // bufferToNode - Converts a byte buffer to a Node
-func bufferToNode(buf []byte, playerTrue, playerFalse string, nodeAddress uint64) MCNode {
+func bufferToNode(key []byte, value []byte, playerTrue, playerFalse string) (mcNode MCNode) {
 	// State High in 8 bytes
-	stateCodeHigh := binary.LittleEndian.Uint64(buf[stateHighOffset:])
+	stateCodeHigh := binary.LittleEndian.Uint64(key[stateHighOffset:])
 
 	// State Low in 8 bytes
-	stateCodeLow := binary.LittleEndian.Uint64(buf[stateLowOffset:])
+	stateCodeLow := binary.LittleEndian.Uint64(key[stateLowOffset:])
 
 	state := stateCodesToState(stateCodeHigh, stateCodeLow)
 
 	// Player in one byte
 	var player string
-	if buf[playerOffset]&1 == 1 {
+	if key[playerOffset] == 1 {
 		player = playerTrue
 	} else {
 		player = playerFalse
 	}
 
 	// IsEnd in one byte
-	isEnd := buf[isEndOffset] == 1
+	isEnd := value[isEndOffset] == 1
 
 	// Actions (file pointer to) in 8 bytes
-	actions := binary.LittleEndian.Uint64(buf[actionsOffset:])
+	actions := binary.LittleEndian.Uint64(value[actionsOffset:])
 
-	return MCNode{
+	mcNode = MCNode{
 		Assigned:       true,
 		IsEnd:          isEnd,
 		State:          state,
 		Player:         player,
-		nAddress:       nodeAddress,
 		ActionsAddress: actions,
 	}
+
+	return
 }
 
 // actionToBuffer - Converts an Action to a byte buffer
@@ -141,8 +130,10 @@ func actionToBuffer(action Action, buf []byte) {
 		buf[actionPassOffset] = 1
 	}
 
-	// Resulting child node address in file in 8 bytes
-	binary.LittleEndian.PutUint64(buf[childNodeOffset:], action.ActionNodeAddress)
+	// Resulting child node key in file in 17 bytes
+	for i := uint64(0); i < uint64(nodeKeyLength); i++ {
+		buf[childNodeKeyOffset+i] = action.ActionNodeKey[i]
+	}
 }
 
 // bufferToAction - Converts a byte buffer to an Action
@@ -162,16 +153,16 @@ func bufferToAction(buf []byte) Action {
 	// Action Pass in one byte
 	actionPass := buf[actionPassOffset] == 1
 
-	// Resulting child node address in file in 8 bytes
-	nAddress := binary.LittleEndian.Uint64(buf[childNodeOffset:])
+	// Resulting child node key in 17 bytes
+	actionNodeKey := buf[childNodeKeyOffset : childNodeKeyOffset+uint64(nodeKeyLength)]
 
 	return Action{
-		Visits:            visits,
-		Points:            points,
-		X:                 actionX,
-		Y:                 actionY,
-		Pass:              actionPass,
-		ActionNodeAddress: nAddress,
+		Visits:        visits,
+		Points:        points,
+		X:             actionX,
+		Y:             actionY,
+		Pass:          actionPass,
+		ActionNodeKey: actionNodeKey,
 	}
 }
 
@@ -232,4 +223,21 @@ func stateCodesToState(stateCodeHigh, stateCodeLow uint64) string {
 
 	state = strings.TrimLeft(state, "0")
 	return state
+}
+
+// nodeStateToBuffer - Converts a nodeState struct to buffer
+func nodeStateToBuffer(nodeState nodeState) (buf []byte) {
+	buf = make([]byte, nodeKeyLength)
+	// State High in 8 bytes
+	binary.LittleEndian.PutUint64(buf[stateHighOffset:], nodeState.stateCodeHigh)
+
+	// State High in 8 bytes
+	binary.LittleEndian.PutUint64(buf[stateLowOffset:], nodeState.stateCodeLow)
+
+	// Player in one byte
+	if nodeState.playerA {
+		buf[playerOffset] = 1
+	}
+
+	return
 }

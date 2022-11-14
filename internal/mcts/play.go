@@ -20,10 +20,11 @@ type MoveResult struct {
 func (T *Tree) ResetPlayPlayerA() error {
 	var err error
 	T.Game.Reset()
-	T.AtNode, err = T.NodeDB.GetNode(0)
+	action, err := T.NodeDB.GetTopAction()
 	if err != nil {
 		return err
 	}
+	T.AtNode = action.ActionNode
 
 	return nil
 }
@@ -33,10 +34,11 @@ func (T *Tree) ResetPlayPlayerA() error {
 func (T *Tree) ResetPlayPlayerB() error {
 	var err error
 	T.Game.Reset()
-	T.AtNode, err = T.NodeDB.GetNode(0)
+	action, err := T.NodeDB.GetTopAction()
 	if err != nil {
 		return err
 	}
+	T.AtNode = action.ActionNode
 
 	_, _ = T.opponentMove()
 
@@ -72,7 +74,7 @@ func (T *Tree) PlayExploitPlayer(x uint8, y uint8, pass bool) (MoveResult, error
 	if T.AtNode.Assigned && T.AtNode.Actions != nil {
 		for _, a := range T.AtNode.Actions {
 			if a.X == x && a.Y == y && a.Pass == pass {
-				T.AtNode, err = T.NodeDB.GetNode(a.ActionNodeAddress)
+				T.AtNode, err = T.NodeDB.GetNode(a.ActionNodeKey)
 				if err != nil {
 					return MoveResult{}, err
 				}
@@ -96,57 +98,6 @@ func (T *Tree) PlayExploitPlayer(x uint8, y uint8, pass bool) (MoveResult, error
 	}
 
 	return T.opponentMove()
-
-	/*
-		// Find best move for opponent
-		var action Action
-		if T.AtNode.Actions != nil {
-			var selected int
-			var maxScore float64
-
-			for i, a := range T.AtNode.Actions {
-				if a.Visits == 0 {
-					continue
-				}
-
-				score := float64(a.Points) / 2 / float64(a.Visits)
-				if score > maxScore {
-					selected = i
-					maxScore = score
-				}
-			}
-
-			action = Action{
-				X:    T.AtNode.Actions[selected].X,
-				Y:    T.AtNode.Actions[selected].Y,
-				Pass: T.AtNode.Actions[selected].Pass,
-			}
-
-			T.AtNode, err = T.NodeDB.GetNode(T.AtNode.Actions[selected].ActionNodeAddress)
-			if err != nil {
-				return MoveResult{}, err
-			}
-
-		} else {
-			actions = T.availableGameActions()
-			if actions == nil {
-				return MoveResult{}, fmt.Errorf("no available actions, should not be possible")
-			}
-
-			T.AtNode = db.MCNode{}
-			action = actions[rand.Intn(len(actions))]
-		}
-
-		isDone, winner, _ = T.Game.Move(action.X, action.Y, action.Pass)
-
-		return MoveResult{
-			IsDone:           isDone,
-			Winner:           winner,
-			OpponentMoveX:    action.X,
-			OpponentMoveY:    action.Y,
-			OpponentMovePass: action.Pass,
-		}, nil
-	*/
 }
 
 func (T *Tree) opponentMove() (MoveResult, error) {
@@ -175,7 +126,7 @@ func (T *Tree) opponentMove() (MoveResult, error) {
 		}
 
 		var err error
-		T.AtNode, err = T.NodeDB.GetNode(T.AtNode.Actions[selected].ActionNodeAddress)
+		T.AtNode, err = T.NodeDB.GetNode(T.AtNode.Actions[selected].ActionNodeKey)
 		if err != nil {
 			return MoveResult{}, err
 		}

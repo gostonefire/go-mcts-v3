@@ -26,9 +26,9 @@ type BoardGame interface {
 type NodeDB interface {
 	AttachActionNodes(parentState, childPlayer string, actions []db.Action, actionResultStates []string) (attachedActions []db.Action, actionsAddress uint64, nReused int64, err error)
 	GetTopAction() (action db.Action, err error)
-	GetNode(nodeAddress uint64) (mcNode db.MCNode, err error)
+	GetNode(nodeKey []byte) (mcNode db.MCNode, err error)
 	UpdateActionStatistics(actionsAddress uint64, actionIndex uint64, newVisits, newPoints uint64) error
-	SetNodeIsEnd(nodeAddress uint64) (err error)
+	SetNodeIsEnd(nodeKey []byte) (err error)
 }
 
 type AI interface {
