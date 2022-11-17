@@ -18,7 +18,7 @@ func GetLearnOptions() (gameId int, size uint8, maxRounds float64, uniqueStates 
 
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Print("Game [0 - TicTacToe, 1 - Othello]: ")
+	fmt.Print("Game [0 - TicTacToe, 1 - Othello, 2 - V Four in a Row]: ")
 	input, err = reader.ReadString('\n')
 	if err != nil {
 		fmt.Printf("Error while reading input from console: %s\n", err)
@@ -33,19 +33,21 @@ func GetLearnOptions() (gameId int, size uint8, maxRounds float64, uniqueStates 
 		gameId = s
 	}
 
-	fmt.Print("Size [4]: ")
-	input, err = reader.ReadString('\n')
-	if err != nil {
-		fmt.Printf("Error while reading input from console: %s\n", err)
-		return
-	}
-	if input = strings.TrimSpace(input); input != "" {
-		s, err = strconv.Atoi(strings.TrimSpace(input))
+	if gameId != 2 {
+		fmt.Print("Size [4]: ")
+		input, err = reader.ReadString('\n')
 		if err != nil {
-			fmt.Printf("Error, malformed number give: %s\n", err)
+			fmt.Printf("Error while reading input from console: %s\n", err)
 			return
 		}
-		size = uint8(s)
+		if input = strings.TrimSpace(input); input != "" {
+			s, err = strconv.Atoi(strings.TrimSpace(input))
+			if err != nil {
+				fmt.Printf("Error, malformed number give: %s\n", err)
+				return
+			}
+			size = uint8(s)
+		}
 	}
 
 	fmt.Print("Max learning rounds [1000000]: ")
@@ -101,7 +103,7 @@ func GetPlayOptions() (gameId int, size uint8, name string, err error) {
 
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Print("Game [0 - TicTacToe, 1 - Othello]: ")
+	fmt.Print("Game [0 - TicTacToe, 1 - Othello, 2 - V Four in a Row]: ")
 	input, err = reader.ReadString('\n')
 	if err != nil {
 		fmt.Printf("Error while reading input from console: %s\n", err)
@@ -116,19 +118,21 @@ func GetPlayOptions() (gameId int, size uint8, name string, err error) {
 		gameId = s
 	}
 
-	fmt.Print("Size [4]: ")
-	input, err = reader.ReadString('\n')
-	if err != nil {
-		fmt.Printf("Error while reading input from console: %s\n", err)
-		return
-	}
-	if input = strings.TrimSpace(input); input != "" {
-		s, err = strconv.Atoi(strings.TrimSpace(input))
+	if gameId != 2 {
+		fmt.Print("Size [4]: ")
+		input, err = reader.ReadString('\n')
 		if err != nil {
-			fmt.Printf("Error, malformed number given: %s\n", err)
+			fmt.Printf("Error while reading input from console: %s\n", err)
 			return
 		}
-		size = uint8(s)
+		if input = strings.TrimSpace(input); input != "" {
+			s, err = strconv.Atoi(strings.TrimSpace(input))
+			if err != nil {
+				fmt.Printf("Error, malformed number given: %s\n", err)
+				return
+			}
+			size = uint8(s)
+		}
 	}
 
 	name = fmt.Sprintf("nodetree%dx%d-%d", size, size, gameId)

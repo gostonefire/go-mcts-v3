@@ -2,89 +2,28 @@ package main
 
 import (
 	"fmt"
-	"github.com/gostonefire/go-mcts-v3/internal/othello"
+	"github.com/gostonefire/go-mcts-v3/internal/verticalfourinarow"
 )
 
 func main() {
-	game, err := othello.NewOthello(4, "B", "W")
-	if err != nil {
-		return
+	game := verticalfourinarow.NewVerticalFIR("B", "W")
+
+	game.PrintBoard()
+	fmt.Println(game.GetState())
+
+	moves := []uint8{2, 2, 2, 2, 2, 3, 3, 3, 3, 6, 4, 4, 4, 1, 5, 6, 5}
+
+	for _, m := range moves {
+		isDone, winner, err := game.Move(m, 0, false)
+		if err != nil {
+			fmt.Printf("Got error: %s\n", err)
+			break
+		}
+		game.PrintBoard()
+		fmt.Println(game.GetState())
+		if isDone {
+			fmt.Printf("Winner: %s\n", winner)
+			break
+		}
 	}
-
-	game.PrintBoard()
-
-	// Black
-	isDone, winner, err := game.Move(1, 3, false)
-	game.PrintBoard()
-	actions, pass := game.AvailableActions()
-	fmt.Println(actions, pass)
-
-	// White
-	isDone, winner, err = game.Move(0, 3, false)
-	game.PrintBoard()
-	actions, pass = game.AvailableActions()
-	fmt.Println(actions, pass)
-
-	// Black
-	isDone, winner, err = game.Move(0, 2, false)
-	game.PrintBoard()
-	actions, pass = game.AvailableActions()
-	fmt.Println(actions, pass)
-
-	// White
-	isDone, winner, err = game.Move(0, 1, false)
-	game.PrintBoard()
-	actions, pass = game.AvailableActions()
-	fmt.Println(actions, pass)
-
-	// Black
-	isDone, winner, err = game.Move(0, 0, false)
-	game.PrintBoard()
-	actions, pass = game.AvailableActions()
-	fmt.Println(actions, pass)
-
-	// White
-	isDone, winner, err = game.Move(2, 3, false)
-	game.PrintBoard()
-	actions, pass = game.AvailableActions()
-	fmt.Println(actions, pass)
-
-	// Black
-	isDone, winner, err = game.Move(3, 1, false)
-	game.PrintBoard()
-	actions, pass = game.AvailableActions()
-	fmt.Println(actions, pass)
-
-	// White
-	isDone, winner, err = game.Move(3, 0, false)
-	game.PrintBoard()
-	actions, pass = game.AvailableActions()
-	fmt.Println(actions, pass)
-
-	// Black
-	isDone, winner, err = game.Move(3, 3, false)
-	game.PrintBoard()
-	actions, pass = game.AvailableActions()
-	fmt.Println(actions, pass)
-
-	// White
-	isDone, winner, err = game.Move(3, 2, false)
-	game.PrintBoard()
-	actions, pass = game.AvailableActions()
-	fmt.Println(actions, pass)
-
-	// Black
-	isDone, winner, err = game.Move(0, 0, true)
-	game.PrintBoard()
-	actions, pass = game.AvailableActions()
-	fmt.Println(actions, pass)
-
-	// White
-	isDone, winner, err = game.Move(2, 0, false)
-	game.PrintBoard()
-	actions, pass = game.AvailableActions()
-	fmt.Println(actions, pass)
-
-	fmt.Println(isDone, winner)
-
 }

@@ -12,8 +12,8 @@ type VerticalFIR struct {
 	playerA      string
 	playerB      string
 	playerInTurn string
-	columns      uint8
-	rows         uint8
+	columns      int
+	rows         int
 	rounds       int
 	done         bool
 }
@@ -29,13 +29,13 @@ func NewVerticalFIR(playerA string, playerB string) *VerticalFIR {
 // Reset - Resets the game to be prepared for a new game
 func (V *VerticalFIR) Reset() {
 	board := make([]column, V.columns)
-	for r := uint8(0); r < V.columns; r++ {
+	for r := 0; r < V.columns; r++ {
 		c := make(column, V.rows)
 		board[r] = c
 	}
 
-	for x := uint8(0); x < V.columns; x++ {
-		for y := uint8(0); y < V.rows; y++ {
+	for x := 0; x < V.columns; x++ {
+		for y := 0; y < V.rows; y++ {
 			board[x][y] = " "
 		}
 	}
@@ -49,16 +49,18 @@ func (V *VerticalFIR) Reset() {
 // Move - Makes a move in the game and evaluates the board for draw, win or continue play.
 // It returns whether game is done, winner (empty string if a draw) and error.
 func (V *VerticalFIR) Move(x uint8, y uint8, pass bool) (bool, string, error) {
-	for y = 0; y < V.rows; y++ {
-		if V.board[x][y] == " " {
+	c := x
+	var r int
+	for r = 0; r < V.rows; r++ {
+		if V.board[c][r] == " " {
 			break
 		}
 	}
-	if y == V.rows {
+	if r == V.rows {
 		return false, "", fmt.Errorf("illegal move, spot already occupied")
 	}
 
-	V.board[x][y] = V.playerInTurn
+	V.board[c][r] = V.playerInTurn
 	V.rounds++
 	draw := V.evaluateGame()
 
@@ -84,9 +86,9 @@ func (V *VerticalFIR) Move(x uint8, y uint8, pass bool) (bool, string, error) {
 func (V *VerticalFIR) AvailableActions() ([][2]uint8, bool) {
 	actions := make([][2]uint8, 0, V.columns)
 
-	for x := uint8(0); x < V.columns; x++ {
+	for x := 0; x < V.columns; x++ {
 		if V.board[x][V.rows-1] == " " {
-			actions = append(actions, [2]uint8{x, 0})
+			actions = append(actions, [2]uint8{uint8(x), 0})
 		}
 	}
 
@@ -97,14 +99,14 @@ func (V *VerticalFIR) AvailableActions() ([][2]uint8, bool) {
 // It returns true if the game is a draw, otherwise the winner is who is denoted in playerInTurn.
 func (V *VerticalFIR) evaluateGame() bool {
 	// Check columns
-	for c := uint8(0); c < V.columns; c++ {
+	for c := 0; c < V.columns; c++ {
 		if V.board[c][0] == " " {
 			continue
 		}
 		inRow := 1
 		prev := V.board[c][0]
 
-		for r := uint8(1); r < V.rows; r++ {
+		for r := 1; r < V.rows; r++ {
 			if V.board[c][r] == " " {
 				break
 			} else if V.board[c][r] == prev {
@@ -121,14 +123,14 @@ func (V *VerticalFIR) evaluateGame() bool {
 	}
 
 	// Check rows
-	for r := uint8(0); r < V.rows; r++ {
+	for r := 0; r < V.rows; r++ {
 		var inRow int
 		prev := V.board[0][r]
 		if prev != " " {
 			inRow = 1
 		}
 
-		for c := uint8(1); c < V.columns; c++ {
+		for c := 1; c < V.columns; c++ {
 			if V.board[c][r] == " " {
 				prev = " "
 				inRow = 0
@@ -146,16 +148,19 @@ func (V *VerticalFIR) evaluateGame() bool {
 	}
 
 	// Check up diagonals
-	start := [][2]uint8{{0, 0}, {0, 1}, {0, 2}, {1, 0}, {2, 0}, {3, 0}}
-	coordInc := func(a, b uint8) (uint8, uint8) { return a + 1, b + 1 }
+	start := [][2]int{{0, 0}, {0, 1}, {0, 2}, {1, 0}, {2, 0}, {3, 0}}
+	coordInc := func(a, b int) (int, int) { return a + 1, b + 1 }
 
 	for _, s := range start {
+		c, r := s[0], s[1]
 		var inRow int
-		prev := V.board[s[0]][s[1]]
+		prev := V.board[c][r]
 		if prev != " " {
 			inRow = 1
 		}
-		for c, r := s[0], s[1]; c < V.columns && r < V.rows; c, r = coordInc(c, r) {
+		c, r = coordInc(c, r)
+
+		for ; c < V.columns && r < V.rows; c, r = coordInc(c, r) {
 			if V.board[c][r] == " " {
 				prev = " "
 				inRow = 0
@@ -173,16 +178,19 @@ func (V *VerticalFIR) evaluateGame() bool {
 	}
 
 	// Check down diagonals
-	start = [][2]uint8{{0, 3}, {0, 4}, {0, 5}, {1, 5}, {2, 5}, {3, 5}}
-	coordInc = func(a, b uint8) (uint8, uint8) { return a + 1, b - 1 }
+	start = [][2]int{{0, 3}, {0, 4}, {0, 5}, {1, 5}, {2, 5}, {3, 5}}
+	coordInc = func(a, b int) (int, int) { return a + 1, b - 1 }
 
 	for _, s := range start {
+		c, r := s[0], s[1]
 		var inRow int
-		prev := V.board[s[0]][s[1]]
+		prev := V.board[c][r]
 		if prev != " " {
 			inRow = 1
 		}
-		for c, r := s[0], s[1]; c < V.columns && r >= uint8(0); c, r = coordInc(c, r) {
+		c, r = coordInc(c, r)
+
+		for ; c < V.columns && r >= 0; c, r = coordInc(c, r) {
 			if V.board[c][r] == " " {
 				prev = " "
 				inRow = 0
@@ -218,8 +226,8 @@ func (V *VerticalFIR) SetPlayers(players [2]string) {
 func (V *VerticalFIR) GetState() (string, string) {
 	buf := make([]byte, V.columns*V.rows)
 	i := 0
-	for c := uint8(0); c < V.columns; c++ {
-		for r := uint8(0); r < V.rows; r++ {
+	for c := 0; c < V.columns; c++ {
+		for r := 0; r < V.rows; r++ {
 			switch V.board[c][r] {
 			case V.playerA:
 				buf[i] = '1'
@@ -247,8 +255,8 @@ func (V *VerticalFIR) SetState(state, playerInTurn string) (bool, string) {
 	V.rounds = 0
 	V.playerInTurn = playerInTurn
 	V.done = false
-	for c := uint8(0); c < V.columns; c++ {
-		for r := uint8(0); r < V.rows; r++ {
+	for c := 0; c < V.columns; c++ {
+		for r := 0; r < V.rows; r++ {
 			switch state[i] {
 			case '1':
 				V.board[c][r] = V.playerA

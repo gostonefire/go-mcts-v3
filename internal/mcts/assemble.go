@@ -7,6 +7,7 @@ import (
 	"github.com/gostonefire/go-mcts-v3/internal/mcts/db"
 	"github.com/gostonefire/go-mcts-v3/internal/othello"
 	"github.com/gostonefire/go-mcts-v3/internal/tictactoe"
+	"github.com/gostonefire/go-mcts-v3/internal/verticalfourinarow"
 )
 
 // AssembleForLearning - Assembles all parts necessary for learning mode
@@ -36,6 +37,13 @@ func AssembleForLearning() (
 		playerA = "B"
 		playerB = "W"
 		game, err = othello.NewOthello(size, playerA, playerB)
+		if err != nil {
+			return
+		}
+	} else if gameId == 2 {
+		playerA = "B"
+		playerB = "W"
+		game = verticalfourinarow.NewVerticalFIR(playerA, playerB)
 		if err != nil {
 			return
 		}
