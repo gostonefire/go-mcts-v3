@@ -13,6 +13,7 @@ func main() {
 
 	moves := []uint8{2, 2, 2, 2, 2, 3, 3, 3, 3, 6, 4, 4, 4, 1, 5, 6, 5}
 
+	var state, player string
 	for _, m := range moves {
 		isDone, winner, err := game.Move(m, 0, false)
 		if err != nil {
@@ -23,7 +24,11 @@ func main() {
 		fmt.Println(game.GetState())
 		if isDone {
 			fmt.Printf("Winner: %s\n", winner)
+			state, player = game.GetState()
 			break
 		}
 	}
+
+	game.Reset()
+	fmt.Println(game.SetState(state, player))
 }

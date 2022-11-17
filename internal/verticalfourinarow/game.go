@@ -208,7 +208,7 @@ func (V *VerticalFIR) evaluateGame() bool {
 	}
 
 	// Check if game is a draw (i.e. no winner and board is full)
-	return V.rounds == int(V.columns)*int(V.columns)
+	return V.rounds == V.columns*V.rows
 }
 
 // GetPlayers - Returns the two players of the game in start order
@@ -246,7 +246,7 @@ func (V *VerticalFIR) GetState() (string, string) {
 // SetState - Sets the game according given state and player in turn
 func (V *VerticalFIR) SetState(state, playerInTurn string) (bool, string) {
 	// Fix length of state by left padding with zeros
-	diff := int(V.columns*V.rows) - len(state)
+	diff := V.columns*V.rows - len(state)
 	if diff > 0 {
 		state = fmt.Sprintf("%0*d%s", diff, 0, state)
 	}
@@ -286,7 +286,7 @@ func (V *VerticalFIR) PrintBoard() {
 	fmt.Println("")
 	for r := int(V.rows) - 1; r >= 0; r-- {
 		fmt.Printf("%d ", r+1)
-		for c := 0; c < int(V.columns); c++ {
+		for c := 0; c < V.columns; c++ {
 			fmt.Printf("|%s", V.board[c][r])
 		}
 		fmt.Print("|\n")
