@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gostonefire/filehashmap"
+	"github.com/gostonefire/filehashmap/crt"
 	"io"
 	"math"
 	"os"
@@ -78,14 +79,9 @@ func NewNodeTree(nodeTreeName, playerA, playerB, initialState string, uniqueStat
 
 	var fhm *filehashmap.FileHashMap
 	if newTree {
-		fhm, _, err = filehashmap.NewFileHashMap(nodeTreeName, uniqueStates, 17, 9, nil)
+		fhm, _, err = filehashmap.NewFileHashMap(nodeTreeName, crt.SeparateChaining, int(uniqueStates), 2, 17, 9, nil)
 		if err != nil {
 			fmt.Printf("Error while creating FileHashMap, %s\n", err)
-			return nil, err
-		}
-		err = fhm.CreateNewFiles()
-		if err != nil {
-			fmt.Printf("Error while creating FileHashMap files, %s\n", err)
 			return nil, err
 		}
 	} else {
@@ -198,7 +194,7 @@ func (N *NodeTree) AttachActionNodes(
 	attachedActions = make([]Action, nActions)
 
 	parentValue, err := N.NodeMap.Get(parentStateKey)
-	if errors.Is(err, filehashmap.NoRecordFound{}) {
+	if errors.Is(err, crt.NoRecordFound{}) {
 		fmt.Printf("Error, no such parentState in node registry: %s\n", parentState)
 		err = fmt.Errorf("error, no such parentState in node registry: %s", parentState)
 		return
@@ -267,7 +263,7 @@ func (N *NodeTree) addNode(state, player string) (mcNode MCNode, stateKey []byte
 	})
 
 	nodeValue, err := N.NodeMap.Get(stateKey)
-	if errors.Is(err, filehashmap.NoRecordFound{}) {
+	if errors.Is(err, crt.NoRecordFound{}) {
 		mcNode = MCNode{
 			Assigned:       true,
 			State:          state,

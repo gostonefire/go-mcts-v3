@@ -2,4 +2,4 @@ module github.com/gostonefire/go-mcts-v3
 
 go 1.19
 
-require github.com/gostonefire/filehashmap v0.6.0
+require github.com/gostonefire/filehashmap v0.12.0
